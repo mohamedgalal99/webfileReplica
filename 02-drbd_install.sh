@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source print.sh
-
+script_dir="$(pwd)"
 function disable_service ()
 {
 	service=$1
@@ -15,12 +15,8 @@ if [[ ! -f "${file}" ]]
 then
 	[[ $(lsb_release -c | awk '{print $2}') != "bionic" ]] && { print "err" "This drbd9 only for ubuntu bionic"; exit 1; }
 	print "info" "Adding linbit-drbd to apt"
-	touch ${file}
-	cat < EOF > ${file}
-	deb http://ppa.launchpad.net/linbit/linbit-drbd9-stack/ubuntu bionic main
-	#deb-src http://ppa.launchpad.net/linbit/linbit-drbd9-stack/ubuntu bionic main
-	EOF
-	mv /etc/apt/trusted.gpg.d/linbit_ubuntu_linbit-drbd9-stack.gpg
+	cp "${script_dir}"/drbd.list /etc/apt/sources.list.d/
+	cp "${script_dir}"linbit_ubuntu_linbit-drbd9-stack.gpg /etc/apt/trusted.gpg.d/
 	apt update
 fi
 
