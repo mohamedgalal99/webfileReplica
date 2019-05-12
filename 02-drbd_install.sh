@@ -9,16 +9,16 @@ function disable_service ()
 }
 
 
-# We can modify this section later to add multi dist
-file="/etc/apt/sources.list.d/drbd.list"
-if [[ ! -f "${file}" ]]
-then
-	[[ $(lsb_release -c | awk '{print $2}') != "bionic" ]] && { print "err" "This drbd9 only for ubuntu bionic"; exit 1; }
-	print "info" "Adding linbit-drbd to apt"
-	cp "${script_dir}"/drbd.list /etc/apt/sources.list.d/
-	cp "${script_dir}"linbit_ubuntu_linbit-drbd9-stack.gpg /etc/apt/trusted.gpg.d/
-	apt update
-fi
+## We can modify this section later to add multi dist
+#file="/etc/apt/sources.list.d/drbd.list"
+#if [[ ! -f "${file}" ]]
+#then
+#	[[ $(lsb_release -c | awk '{print $2}') != "bionic" ]] && { print "err" "This drbd9 only for ubuntu bionic"; exit 1; }
+#	print "info" "Adding linbit-drbd to apt"
+#	cp "${script_dir}"/drbd.list /etc/apt/sources.list.d/
+#	cp "${script_dir}"/linbit_ubuntu_linbit-drbd9-stack.gpg /etc/apt/trusted.gpg.d/
+#	apt update
+#fi
 
 print "info" "Going to install following packages drbd-utils python-drbdmanage drbd-dkms"
 
@@ -26,6 +26,9 @@ print "info" "Going to install following packages drbd-utils python-drbdmanage d
 debconf-set-selections <<< "postfix postfix/mailname string ${hostname}.com"
 debconf-set-selections <<< "postfix postfix/main_mailer_type string 'No Configuration'"
 
-apt install -y drbd-utils python-drbdmanage drbd-dkms
+#apt install -y drbd-utils
 modinfo drbd
+apt install -y drbd8-utils
+
+print "info" "Disable postfix :D"
 disable_service postfix
