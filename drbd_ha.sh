@@ -39,8 +39,12 @@ function state ()
 }
 function test_floating ()
 {
-	ip -4 -o a s "${floating_iface}" | grep "${floating_ip}/${netmask}" &> /dev/null
-	return $?
+	if [[ $(ip -4 -o a s "${floating_iface}" | grep "${floating_ip}/${netmask}") ]]
+	then
+		echo "0"
+	else
+		echo "1"
+	fi
 }
 
 function primary ()
@@ -49,7 +53,7 @@ function primary ()
 	drbdadm primary ${drbd_name}
 	for (( i =0; i < ${#disks[@]}; i++ ))
 	do
-		echo "${disks[${i}]} on ${mount_point[${i}]}"
+		#echo "${disks[${i}]} on ${mount_point[${i}]}"
 		mount | grep "${disks[${i}]} on ${mount_point[${i}]} " &> /dev/null
 		if [[ $? != 0 ]]
 		then
@@ -58,7 +62,6 @@ function primary ()
 	done
 	state=0
 	echo "End primary function"
-	return 0
 }
 function secondary ()
 {
@@ -77,32 +80,51 @@ function secondary ()
 	drbdadm secondary ${drbd_name}
 	state=1
 	echo "End Sec function"
-	return 1
 }
 
 init_statue
 
-if [[ "${cstate}" != "Connected" ]]
+drbdadm cstate ${drbd_name} &> /dev/null
+[[ $? = 10 ]] && drbdadm up ${drbd_name}
+if [[ "${cstate}" = "Connected" ]]
 then
-	return 1
-else
 	current_role=$(echo ${role} | awk -F/ '{print $1}')
 	if [[ "${current_role}" = "Primary" ]]
 	then
 		echo "prim"
-		if [[ ${test_floating} = 0 ]]
+		t=$(test_floating)
+		if [[ ${t} = 0 ]]
 		then
 			primary
+			exit 0
 		else
 			echo "damn"
 			secondary
+			exit 0
 		fi
 	elif [[ "$(echo ${role} | grep Primary)" ]]
 	then
 		echo "sec"
 		secondary
-	else
+		exit 0
+	elif [[ "$(echo ${role} | grep -E "^Secondary")" && ! "$(echo ${role} | grep "Primary")" ]]
+	then
 		primary
+		exit 0
+	else
+		exit 255
 	fi
+elif [[ "${cstate}" = "SyncTarget" ]]
+then
+	# no idea what should i do
+	exit 1
+elif [[ "${cstate}" = "WFConnection" ]]
+then
+	# state they thay What Fuck Connection :(
+	primary
+	exit 0
+else
+	# status i don't know :/
+	exit 1
 fi
 
