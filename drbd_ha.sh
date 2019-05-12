@@ -84,6 +84,29 @@ function secondary ()
 
 init_statue
 
+state="${1}"
+if [[ -z ${state} ]]
+then
+	[[ -f "/etc/keepalived/status" ]] && state=$(cat /etc/keepalived/status)
+fi
+
+if [[ "${state}" = "MASTER" ]]
+then
+	primary
+	exit 0
+elif [[ "${state}" = "BACKUP" ]]
+then
+	secondary
+	exit 0
+elif [[ "${state}" = "FAULT" ]]
+then
+	secondary
+	exit 0
+else
+	exit 1
+fi
+
+
 drbdadm cstate ${drbd_name} &> /dev/null
 [[ $? = 10 ]] && drbdadm up ${drbd_name}
 if [[ "${cstate}" = "Connected" ]]
