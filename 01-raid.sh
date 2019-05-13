@@ -7,6 +7,9 @@
 source print.sh
 disks=($@)
 
+apt install -y make make-guile gcc linux-headers-server build-essential psmisc bison flex linux-headers-$(name-r)
+
+
 
 function disk_format ()
 {
