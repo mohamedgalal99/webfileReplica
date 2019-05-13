@@ -1,6 +1,6 @@
 #!/bin/bash
 # Title          :raid.sh
-# Description    :This script used to formate disks and create raid 1 from them, it take set of disks needed
+# Description    :
 # Author         :Mohamed Galal
 # Example        :# bash raid.sh sdb sdc
 
@@ -92,7 +92,7 @@ function lvm_create ()
 	lvcreate -L ${lv_size}G -n ${lv_name} ${vg_name} &&  print "ok" "Logical Volume ${lv_name} created" "1"
 }
 
-apt install -y make make-guile gcc linux-headers-server build-essential psmisc bison flex
+apt install -y make make-guile gcc linux-headers-server linux-headers-"$(uname -r)" build-essential psmisc bison flex 
 ###############
 # Check disks #
 ###############
@@ -133,8 +133,11 @@ dpkg -l | grep mdadm &> /dev/null
 
 print "info" "Creating RAID 1"
 raid_create ${disks[@]}
-
 #state "/proc/mdstat"
+
+#################
+# Create LVM LV #
+#################
 
 print "info" "Create 2 LVM:\n  1- web: 3G\n  2- files: 10G "
 lvm_create "/dev/md0" "r0" "web" "3"
