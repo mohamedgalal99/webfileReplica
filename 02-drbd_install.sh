@@ -8,7 +8,7 @@ drbd_disks=(
 "/dev/r0/files"
 "/dev/r0/web"
 )
-drdb_new=(
+drbd_new=(
 "/dev/drbd0"
 "/dev/drbd1"
 )
@@ -46,7 +46,7 @@ function primary ()
 		mkfs.ext4 ${drbd_new[$i]}
 		mount ${drbd_new[${i}]} ${mount_point[${i}]}
 	done
-	print "ok" "hope eberything ok primay"
+	print "ok" "Hope everything is ok primay"
 
 }
 function secondary ()
@@ -139,7 +139,7 @@ $(
 for (( i = 0 ; i < ${#drbd_disks[@]} ; i++ ))
 do
     echo -e "    volume ${i} {" 
-    echo -e "        device\t${drbd_new${i}};"
+    echo -e "        device\t${drbd_new[${i}]};"
     echo -e "        disk\t${drbd_disks[${i}]};"
     echo -e "        meta-disk\tinternal;\n\t}"
     
