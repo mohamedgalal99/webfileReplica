@@ -50,6 +50,7 @@ function test_floating ()
 function primary ()
 {
 	echo "Start primary function"
+	drbdadm up ${drbd_name}
 	drbdadm primary ${drbd_name}
 	for (( i =0; i < ${#disks[@]}; i++ ))
 	do
@@ -66,6 +67,7 @@ function primary ()
 function secondary ()
 {
 	echo "Start Sec function"
+	drbdadm up ${drbd_name}
 	for (( i =0; i < ${#disks[@]}; i++ ))
 	do
 		echo " ${disks[${i}]} on ${mount_point[${i}]}"
