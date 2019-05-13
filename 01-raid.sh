@@ -88,7 +88,7 @@ function lvm_create ()
 		print "ok" "Volume Groupe (r0) created successfully" "1"
 	fi
 	# Create lvm_lv
-	lvcreate -L ${lv_size}G ${lv_name} ${vg_name} &&  print "ok" "Logical Volume ${lv_name} created" "1"
+	lvcreate -L ${lv_size}G -n ${lv_name} ${vg_name} &&  print "ok" "Logical Volume ${lv_name} created" "1"
 }
 
 apt install -y make make-guile gcc linux-headers-server build-essential psmisc bison flex
