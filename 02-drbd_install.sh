@@ -4,7 +4,11 @@ source print.sh
 servers=($@)
 r_name="r0"
 script_dir="$(pwd)"
-drbd_disks=()
+drbd_disks=(
+"/dev/r0/files"
+"/dev/r0/web"
+)
+
 mount_point=(
 "/srv/data"
 "/srv/web"
@@ -27,6 +31,10 @@ function disable_service ()
 
 function primary ()
 {
+	for i in ${mount_point}
+	do
+		[[ -d "${i}" ]] && mkdir $i
+	done
 	drbdadm create-md ${r_name}
 	drbdadm up ${r_name}
 	drbdadm primary --force ${r_name}
@@ -34,13 +42,20 @@ function primary ()
 	do
 		mount ${drbd_disks[${i}]} ${mount_point[${i}]}
 	done
+	print "ok" "hope eberything ok primay"
 
 }
 function secondary ()
 {
 	drbdadm create-md ${r_name}
 	drbdadm up ${r_name}
+	print "ok" "hope u secondary join ur cluster"
 }
+
+[[ -n ${servers} ]] || { print "err" "plase provide set of ip address for drbd: \"ip1\" \"ip2\""; exit 1; }
+[[ -n ${drbd_disks} ]] || { print "err" "plase provide disks, open script"; exit 1; }
+[[ -n ${mount_point} ]] || { print "err" "plase provide set of ip address for drbd: ip1 ip2"; exit 1; }
+
 
 print "info" "Going to install DRBD"
 
@@ -108,25 +123,30 @@ common {
 }
 EOF
 
+hosts=()
+for i in ${servers[@]}
+do
+	hosts=(${hosts[@]} "$(grep "${i}" /etc/hosts | awk '{print $NF}')")
+done
+
 cat << EOF > "${drbd_dir}/${r_name}.res"
 resource ${r_name} {
 $( 
-for (( i = 0 ; i < ${#disks[@]} ; i++ ))
+for (( i = 0 ; i < ${#drbd_disks[@]} ; i++ ))
 do
-    echo -e "\tvolume ${i} {" 
-    echo -e "\t\tdevice\t/dev/drbd${i};"
-    drbd_disks=(${drbd_disks[@]} "/dev/drbd${i}")
-    echo -e "\t\tdisk\t${disks[${i}]};"
-    echo -e "\t\tmeta-disk\tinternal;\n\t}"
+    echo -e "    volume ${i} {" 
+    echo -e "        device\t/dev/drbd${i};"
+    echo -e "        disk\t${drbd_disks[${i}]};"
+    echo -e "        meta-disk\tinternal;\n\t}"
     
 done
 )
 $(
 for (( i = 0 ; i < ${#hosts[@]} ; i++ ))
 do
-    echo -e "\ton ${hosts[${i}]} {"
-    echo -e "\t\taddress\t${servers[${i}]};"
-    echo -e "\t\tmeta-disk\tinternal;\n\t}"
+    echo -e "    on ${hosts[${i}]} {"
+    echo -e "        address\t${servers[${i}]}:7789;"
+    echo -e "        meta-disk\tinternal;\n}"
 done
 )
 }
@@ -137,8 +157,10 @@ EOF
 #############
 if [[ $(ip a | grep "inet ${servers[0]/}") ]]
 then
+	print "info" "server is primary"
 	primary
 else
+	print "info" "server is secondary"
 	secondary
 fi
 
