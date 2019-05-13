@@ -7,9 +7,28 @@
 source print.sh
 disks=($@)
 
-apt install -y make make-guile gcc linux-headers-server build-essential psmisc bison flex linux-headers-$(name-r)
+#apt install -y make make-guile gcc linux-headers-server build-essential psmisc bison flex linux-headers-$(name-r)
 
-
+function state ()
+{
+	file="$1"
+	echo $file
+	if [[ -f "${file}" ]]
+	then
+		last_mod=$(stat -t "${file}" | awk '{print $13}')
+		now=$(date +%s)
+		diffrence=$((( $now - $last_mod )))
+		echo $diffrence
+		while [[ ${diffrence} -lt 100 ]]
+		do
+			cat "${file}"
+			sleep 1
+			last_mod=$(stat -t "${file}" | awk '{print $13}')
+			now=$(date +%s)
+			diffrence=$((( $now - $last_mod )))
+		done
+	fi
+}
 
 function disk_format ()
 {
@@ -34,7 +53,12 @@ function raid_create ()
 		partitions=(${partitions[@]} /dev/${disks[${i}]}1)  		# if disk isn't sdX1 this will be error
 	done
 	mdadm --create /dev/md0 --level=mirror --metadata=0.90 --raid-devices=${#partitions[@]} ${partitions[@]}  # need to optimize to get next available mdX
-	[[ $? = 0 ]] && print "ok" "RAID 1 created" "1" || { print "err" "Faild to create RAID 1" "1"; exit; }
+	[[ $? = 0 ]] && print "ok" "RAID 1 created" "1" || { print "err" "Faild to create RAID 1" "1"; exit 1; }
+	while [[ $(grep sync /proc/mdstat) ]]
+	do
+		grep sync /proc/mdstat
+		sleep 2
+	done
 }
 
 function lvm_create ()
@@ -67,6 +91,7 @@ function lvm_create ()
 	lvcreate -L ${lv_size}G ${lv_name} ${vg_name} &&  print "ok" "Logical Volume ${lv_name} created" "1"
 }
 
+apt install -y make make-guile gcc linux-headers-server build-essential psmisc bison flex
 ###############
 # Check disks #
 ###############
@@ -107,6 +132,8 @@ dpkg -l | grep mdadm &> /dev/null
 
 print "info" "Creating RAID 1"
 raid_create ${disks[@]}
+
+#state "/proc/mdstat"
 
 print "info" "Create 2 LVM:\n  1- web: 3G\n  2- files: 10G "
 lvm_create "/dev/md0" "r0" "web" "3"
