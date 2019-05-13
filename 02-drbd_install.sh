@@ -8,7 +8,10 @@ drbd_disks=(
 "/dev/r0/files"
 "/dev/r0/web"
 )
-
+drdb_new=(
+"/dev/drbd0"
+"/dev/drbd1"
+)
 mount_point=(
 "/srv/data"
 "/srv/web"
@@ -38,9 +41,10 @@ function primary ()
 	drbdadm create-md ${r_name}
 	drbdadm up ${r_name}
 	drbdadm primary --force ${r_name}
-	for (( i =0; i < ${#drbd_disks[@]}; i++ ))
+	for (( i =0; i < ${#drbd_new[@]}; i++ ))
 	do
-		mount ${drbd_disks[${i}]} ${mount_point[${i}]}
+		mkfs.ext4 ${drbd_new[$i]}
+		mount ${drbd_new[${i}]} ${mount_point[${i}]}
 	done
 	print "ok" "hope eberything ok primay"
 
@@ -135,7 +139,7 @@ $(
 for (( i = 0 ; i < ${#drbd_disks[@]} ; i++ ))
 do
     echo -e "    volume ${i} {" 
-    echo -e "        device\t/dev/drbd${i};"
+    echo -e "        device\t${drbd_new${i}};"
     echo -e "        disk\t${drbd_disks[${i}]};"
     echo -e "        meta-disk\tinternal;\n\t}"
     
