@@ -54,11 +54,12 @@ function raid_create ()
 	done
 	mdadm --create /dev/md0 --level=mirror --metadata=0.90 --raid-devices=${#partitions[@]} ${partitions[@]}  # need to optimize to get next available mdX
 	[[ $? = 0 ]] && print "ok" "RAID 1 created" "1" || { print "err" "Faild to create RAID 1" "1"; exit 1; }
-	while [[ $(grep sync /proc/mdstat) ]]
-	do
-		grep sync /proc/mdstat
-		sleep 2
-	done
+# Note: enable if u want to wait till sync complete
+	#while [[ $(grep sync /proc/mdstat) ]]
+	#do
+	#	grep sync /proc/mdstat
+	#	sleep 2
+	#done
 }
 
 function lvm_create ()
