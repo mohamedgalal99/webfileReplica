@@ -34,10 +34,6 @@ function disable_service ()
 
 function primary ()
 {
-	for i in ${mount_point}
-	do
-		[[ -d "${i}" ]] && mkdir $i
-	done
 	drbdadm create-md ${r_name}
 	drbdadm up ${r_name}
 	drbdadm primary --force ${r_name}
@@ -159,6 +155,12 @@ EOF
 #############
 # init drbd #
 #############
+
+for i in ${mount_point[@]}
+do
+	[[ -d "${i}" ]] && mkdir $i
+done
+
 if [[ $(ip a | grep "inet ${servers[0]/}") ]]
 then
 	print "info" "server is primary"
