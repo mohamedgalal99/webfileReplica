@@ -1,4 +1,10 @@
 #!/bin/bash
+# Title          :02-drbd_install.s
+# Description    :Install and configure DRBD and mount it on primary node
+# Author         :Mohamed Galal
+# Example        :# bash 02-drbd_install.sh ip1 ip2
+# Note1		 : ip1 should be primary ip
+# Note2		 : ssh key should be exchanged between all hosts even host it self
 source print.sh
 
 servers=($@)

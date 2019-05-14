@@ -1,12 +1,27 @@
 #!/bin/bash
+# Title          :03-keepalived-drbd.sh
+# Description    :Installing NFS server and keepalived for DRBD
+# Author         :Mohamed Galal
+# Example        :# bash 03-keepalived-drbd.sh
 source print.sh
 
+# Script Variables needed, easy to link later 
 keepalive_iface="enp0s8"
 floating_ip="192.168.1.10/24"
 keepalive_servers=(
 192.168.1.2
 192.168.1.3
 )
+drbd_new=(
+"/dev/drbd0"
+"/dev/drbd1"
+)
+mount_point=(
+"/srv/data"
+"/srv/web"
+)
+nfs_file="/etc/exports"
+###############################################
 
 for i in  ${keepalive_servers[@]}
 do
@@ -31,8 +46,26 @@ function install_keepalive ()
 	print "ok" "Keepalived installed" "1"
 }
 
+function install_nfs_server ()
+{
+	ip="${1:-127.0.0.1}"
+	apt install -y nfs-kernel-server
+	ip_mask="$(ip a s | grep "${ip}" | awk '{print $2}')"
+	network="$(ipcalc ${ip_mask} | grep -Ei "^network" | awk '{print $2}')"
+	cat << EOF >> ${nfs_file}
+$( for (( i = 0; i < ${#mount_point[@]}; i++ ))
+do
+line="${mount_point[${i}]} ${network}(rw,async,no_root_squash,no_subtree_check,fsid=$((( ${i} + 1 ))))"
+[[ ! $(grep -E "^${mount_point[${i}]} ${network}" ${nfs_file}) ]] && echo "${line}" >> ${nfs_file}
+done
+)
+EOF
+}
+
 # Collecting info from server && build keppalive config
 server_ip=$(ip -4 -o a s ${keepalive_iface} | head -1 | awk '{print $4}' | sed 's#/24##')
+
+install_nfs_server "${server_ip}"
 install_keepalive
 
 print "info" "Creating drbd HA scripts"
