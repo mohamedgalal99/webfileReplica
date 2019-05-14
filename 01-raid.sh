@@ -92,7 +92,7 @@ function lvm_create ()
 	lvcreate -L ${lv_size}G -n ${lv_name} ${vg_name} &&  print "ok" "Logical Volume ${lv_name} created" "1"
 }
 
-apt install -y make make-guile gcc linux-headers-server linux-headers-"$(uname -r)" build-essential psmisc bison flex 
+apt install -y make make-guile gcc linux-headers-server linux-headers-"$(uname -r)" build-essential psmisc bison flex libssl-dev  
 ###############
 # Check disks #
 ###############
