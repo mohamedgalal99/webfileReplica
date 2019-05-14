@@ -24,9 +24,10 @@ function install_keepalive ()
 	wget https://www.keepalived.org/software/keepalived-2.0.16.tar.gz || { print "err" "Can't install keepalived please check your connection or url :P " "1"; exit 1; }
 	tar xzvf keepalived-2.0.16.tar.gz
 	cd keepalived-2.0.16
-	./configure
+	./configure || { print "err" "Can't install keepalived , plz check"; exit 1; }
 	make
 	make install
+	mkdir /etc/keepalived/
 	print "ok" "Keepalived installed" "1"
 }
 
@@ -35,10 +36,17 @@ server_ip=$(ip -4 -o a s ${keepalive_iface} | head -1 | awk '{print $4}' | sed '
 install_keepalive
 
 print "info" "Creating drbd HA scripts"
-cp ${script_path}/drbd_ha.sh /etc/keepalived
-cp ${script_path}/keepalivednotify.sh /etc/keepalived
+if [[ -d "/etc/keepalived/" ]]
+then
+	cp ${script_path}/drbd_ha.sh /etc/keepalived/
+	cp ${script_path}/keepalivednotify.sh /etc/keepalived/
+else
+	print "err" "CAn't find /etc/keepalived/ dir"
+	exit 1
+fi
+
 print "info" "Creating keepalived config file"
-cat << EOF > as
+cat << EOF > /etc/keepalived/keepalived.conf
 vrrp_script chk_drbd {
     script "/bin/bash /etc/keepalived/drbd_ha.sh"
     interval 3
@@ -75,5 +83,6 @@ vrrp_instance VI_1 {
 }
 EOF
 
-systemctl enable keepalived
+systemctl daemon-reload
 systemctl start keepalived
+systemctl enable keepalived.service
