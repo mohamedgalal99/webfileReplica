@@ -66,7 +66,7 @@ function secondary ()
 print "info" "Going to install DRBD"
 apt install -y make gcc linux-headers-$(uname -r) build-essential 
 apt install -y make-guile psmisc bison flex libssl-dev ipcalc
-apt install linux-modules-extra-$(uname -r) drbd-module-source  drbd-utils drbd8-utils
+apt install -y linux-modules-extra-$(uname -r) drbd-module-source  drbd-utils
 
 # Postifix will be installed so I will bass it's interactive window
 debconf-set-selections <<< "postfix postfix/mailname string ${hostname}.com"
@@ -170,7 +170,7 @@ EOF
 #############
 # init drbd #
 #############
-
+apt install -y drbd8-utils
 for i in ${mount_point[@]}
 do
 	[[ -d "${i}" ]] && mkdir $i
