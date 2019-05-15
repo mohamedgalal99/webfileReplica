@@ -52,10 +52,11 @@ fi
 
 
 print "info" "Installing nfs client"
-apt install nfs-kernel-server
+apt install nfs-kernel-server nfs-common portmap
 
 # keepalived
 server_ip=$(ip -4 -o a s ${keepalive_iface} | head -1 | awk '{print $4}' | sed 's#/24##')
+apt install -y make gcc linux-headers-$(uname -r) build-essential libssl-dev ipcal
 install_keepalived
 
 
