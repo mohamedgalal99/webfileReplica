@@ -161,7 +161,7 @@ $(
 for (( i = 0 ; i < ${#hosts[@]} ; i++ ))
 do
     echo -e "    on ${hosts[${i}]} {"
-    echo -e "        address\t${servers[${i}]}:7789;"
+    echo -e "        address\t${servers[${i}]}:7789;    }"
 done
 )
 }
