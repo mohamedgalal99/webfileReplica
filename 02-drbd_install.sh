@@ -173,7 +173,7 @@ EOF
 apt install -y drbd8-utils
 for i in ${mount_point[@]}
 do
-	[[ -d "${i}" ]] && mkdir $i
+	[[ -d "${i}" ]] && mkdir /srv/$i
 done
 
 if [[ $(ip a | grep "inet ${servers[0]/}") ]]
