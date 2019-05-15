@@ -40,9 +40,9 @@ function disable_service ()
 
 function primary ()
 {
-	drbdadm create-md ${r_name}
-	drbdadm up ${r_name}
-	drbdadm primary --force ${r_name}
+	drbdadm create-md ${r_name} && print "ok" "drbd create-md" || { print "err" "drbd create-md"; exit 1; }
+	drbdadm up ${r_name} && print "ok" "drbd is up and running" || { print "err" "drbd still down"; exit 1; }
+	drbdadm primary --force ${r_name} && print "ok" "This node become primary" || { print "err" "faild to be primary"; exit 1; }
 	for (( i =0; i < ${#drbd_new[@]}; i++ ))
 	do
 		mkfs.ext4 ${drbd_new[$i]}
@@ -53,8 +53,8 @@ function primary ()
 }
 function secondary ()
 {
-	drbdadm create-md ${r_name}
-	drbdadm up ${r_name}
+	drbdadm create-md ${r_name} && print "ok" "drbd create-md" || { print "err" "drbd create-md"; exit 1; }
+	drbdadm up ${r_name} || { print "err" "drbd still down"; exit 1; }
 	print "ok" "hope u secondary join ur cluster"
 }
 
@@ -64,14 +64,24 @@ function secondary ()
 
 
 print "info" "Going to install DRBD"
+apt install -y make gcc linux-headers-$(uname -r) build-essential 
+apt install -y make-guile psmisc bison flex libssl-dev ipcalc
+apt install linux-modules-extra-$(uname -r) drbd-module-source  drbd-utils drbd8-utils
 
 # Postifix will be installed so I will bass it's interactive window
 debconf-set-selections <<< "postfix postfix/mailname string ${hostname}.com"
 debconf-set-selections <<< "postfix postfix/main_mailer_type string 'No Configuration'"
 
-modinfo drbd
-apt install -y drbd8-utils
 
+mkdir /tmp/drbd
+cd /tmp/drbd
+wget https://www.linbit.com/downloads/drbd/8.4/drbd-8.4.11-1.tar.gz || { print "err" "drbd kernel download link not found"; exit 1; }
+tar xzvf drbd-8.4.11-1.tar.gz
+cd drbd-8.4.11-1
+make || { print "err" "compile drbd kernel module fail fix"; exit 1; }
+make install && print "ok" "drbd kernel moudule installed succesfully"
+
+modinfo drbd || { print "err" "Kernel module drbd not loaded fix by ur hand"; exit 1; }
 print "info" "Disable postfix :D"
 disable_service postfix
 
@@ -80,7 +90,7 @@ disable_service postfix
 ########################################
 # Checking connectoin to other servers #
 ########################################
-
+# ssh key should be exchanged between all hosts even host itself
 print "info" "Checking connection to other node , hope u exchange key between them :)"
 connection=0
 for server_ip in ${servers[@]}
@@ -103,7 +113,7 @@ done
 ################################
 
 drbd_dir="/etc/drbd.d"
-[[ ! -d "${drbd_dir}" ]] && mkdir ${drbd_dir}
+[[ ! -d "${drbd_dir}" ]] && { mkdir ${drbd_dir} ; print "Creating drbd dir"; }
 
 if [[ -f "${drbd_dir}/global_common.conf" ]]
 then
@@ -143,7 +153,7 @@ do
     echo -e "    volume ${i} {" 
     echo -e "        device\t${drbd_new[${i}]};"
     echo -e "        disk\t${drbd_disks[${i}]};"
-    echo -e "        meta-disk\tinternal;\n\t}"
+    echo -e "        meta-disk\tinternal;\n    }"
     
 done
 )
@@ -152,7 +162,6 @@ for (( i = 0 ; i < ${#hosts[@]} ; i++ ))
 do
     echo -e "    on ${hosts[${i}]} {"
     echo -e "        address\t${servers[${i}]}:7789;"
-    echo -e "        meta-disk\tinternal;\n}"
 done
 )
 }
