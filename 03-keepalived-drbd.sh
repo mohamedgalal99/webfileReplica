@@ -120,4 +120,3 @@ cp /tmp/keepalive/keepalived-2.0.16/keepalived/keepalived.service /lib/systemd/s
 systemctl daemon-reload
 systemctl enable keepalived.service
 systemctl start keepalived
-
