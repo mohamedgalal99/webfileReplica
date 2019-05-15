@@ -2,7 +2,7 @@
 
 floating_ip="192.168.1.10"
 netmask=24
-floating_iface="enp0s8"
+floating_iface="ens8"
 disks=(
 "/dev/drbd0"
 "/dev/drbd1"
@@ -86,10 +86,10 @@ function secondary ()
 
 init_statue
 
-state="${1}"
+state="$(cat /etc/keepalived/status)"
 if [[ -z ${state} ]]
 then
-	[[ -f "/etc/keepalived/status" ]] && state=$(cat /etc/keepalived/status)
+	[[ -f "/etc/keepalived/status" ]] && state=$(cat /etc/keepalived/status)    # what is this
 fi
 
 if [[ "${state}" = "MASTER" ]]
@@ -107,49 +107,3 @@ then
 else
 	exit 1
 fi
-
-
-#drbdadm cstate ${drbd_name} &> /dev/null
-#[[ $? = 10 ]] && drbdadm up ${drbd_name}
-#if [[ "${cstate}" = "Connected" ]]
-#then
-#	current_role=$(echo ${role} | awk -F/ '{print $1}')
-#	if [[ "${current_role}" = "Primary" ]]
-#	then
-#		echo "prim"
-#		t=$(test_floating)
-#		if [[ ${t} = 0 ]]
-#		then
-#			primary
-#			exit 0
-#		else
-#			echo "damn"
-#			secondary
-#			exit 0
-#		fi
-#	elif [[ "$(echo ${role} | grep Primary)" ]]
-#	then
-#		echo "sec"
-#		secondary
-#		exit 0
-#	elif [[ "$(echo ${role} | grep -E "^Secondary")" && ! "$(echo ${role} | grep "Primary")" ]]
-#	then
-#		primary
-#		exit 0
-#	else
-#		exit 255
-#	fi
-#elif [[ "${cstate}" = "SyncTarget" ]]
-#then
-#	# no idea what should i do
-#	exit 1
-#elif [[ "${cstate}" = "WFConnection" ]]
-#then
-#	# state they thay What Fuck Connection :(
-#	primary
-#	exit 0
-#else
-#	# status i don't know :/
-#	exit 1
-#fi
-
