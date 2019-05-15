@@ -11,7 +11,7 @@ keepalive_servers=(
 )
 
 
-function install_keepalive () 
+function install_keepalived () 
 {
 	print "info" "Start installing Keepalived" "1"
 	mkdir /tmp/keepalive
@@ -52,11 +52,11 @@ fi
 
 
 print "info" "Installing nfs client"
-apt install nfs-kernel-server nfs-common portmap
+apt install -y nfs-kernel-server nfs-common portmap
 
 # keepalived
 server_ip=$(ip -4 -o a s ${keepalive_iface} | head -1 | awk '{print $4}' | sed 's#/24##')
-apt install -y make gcc linux-headers-$(uname -r) build-essential libssl-dev ipcal
+apt install -y make gcc linux-headers-$(uname -r) build-essential libssl-dev ipcalc
 install_keepalived
 
 
