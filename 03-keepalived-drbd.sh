@@ -116,6 +116,8 @@ vrrp_instance VI_1 {
 }
 EOF
 
+cp /tmp/keepalive/keepalived-2.0.16/keepalived/keepalived.service /lib/systemd/system
 systemctl daemon-reload
-systemctl start keepalived
 systemctl enable keepalived.service
+systemctl start keepalived
+
