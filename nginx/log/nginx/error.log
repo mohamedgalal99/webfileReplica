@@ -1,0 +1,2 @@
+2019/05/15 10:26:27 [emerg] 1#1: invalid number of arguments in "try_files" directive in /etc/nginx/sites-enabled/default:17
+2019/05/15 10:26:54 [emerg] 1#1: invalid number of arguments in "try_files" directive in /etc/nginx/sites-enabled/default:17
