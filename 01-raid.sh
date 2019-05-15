@@ -95,7 +95,8 @@ function lvm_create ()
 # required packages
 apt update
 apt upgrade -y    # take care if u don't want to upgrade
-apt install -y make make-guile gcc linux-headers-"$(uname -r)" build-essential psmisc bison flex libssl-dev ipcala
+apt install -y make gcc linux-headers-"$(uname -r)" build-essential 
+apt install -y make-guile psmisc bison flex libssl-dev ipcalc
 
 
 ###############
