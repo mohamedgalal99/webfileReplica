@@ -55,7 +55,7 @@ function install_nfs_server ()
 	cat << EOF >> ${nfs_file}
 $( for (( i = 0; i < ${#mount_point[@]}; i++ ))
 do
-line="${mount_point[${i}]} ${network}(rw,async,no_root_squash,no_subtree_check,fsid=$((( ${i} + 1 ))))"
+line="${mount_point[${i}]} ${network}(rw,sync,no_root_squash,no_subtree_check,fsid=$((( ${i} + 1 ))))"
 [[ ! $(grep -E "^${mount_point[${i}]} ${network}" ${nfs_file}) ]] && echo "${line}" >> ${nfs_file}
 done
 )
